@@ -1,3 +1,5 @@
+package hr
+
 import scala.collection.mutable._
 
 /**
