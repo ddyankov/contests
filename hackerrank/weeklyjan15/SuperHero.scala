@@ -1,61 +1,47 @@
 package hr.weeklyjan15
-import scala.collection.mutable.{ListBuffer, HashMap}
 
-/**
- * Created by dimitar on 1/7/15.
- */
-
-case class Enemy(var power: Int, var bullets: Int, var path: Int)
+import java.util.Scanner
+import scala.math._
 
 object SuperHero {
+  def main(args: Array[String]) {
+    val sc = new Scanner(System.in)
 
-  def main (args: Array[String] ) {
-    val cases = readInt()
+    (0 until sc.nextByte()).foreach { _ =>
+      val n = sc.nextInt()
+      val m = sc.nextInt()
 
-    for (i<-0 until cases) {
-      val lookup = new HashMap[Int, ListBuffer[Enemy]]
-      val nm = readLine().split(" ")
-      val levels = nm(0).toInt
-      val enemies = nm(1).toInt
+      val power = Array.tabulate[Int](n, m)((_, _) => sc.nextInt())
+      val bullets = Array.tabulate[Int](n, m)((_, _) => sc.nextInt())
 
-      for (l <-1 to levels) {
-        val e = readLine().split(" ")
-        val buff = new ListBuffer[Enemy]
-        lookup.put(l, buff)
-        e.foreach(v => lookup.get(l).get.append(new Enemy(v.toInt, 0, 0)))
+      val best = Array.tabulate[Array[(Int, Int)]](n)(i =>
+        if (i < n - 1) findBest(sortByPower(power(i).zip(bullets(i))))
+        else Array[(Int, Int)]((power(n - 1).min, 0))
+      )
+
+      println(solve(n-2, best(n-1), best).map(x => x._1 + x._2).min)
+    }
+  }
+
+  def solve(n: Int, p: Array[(Int, Int)], best: Array[Array[(Int, Int)]] ): Array[(Int,Int)] = {
+    if (n < 0) {
+      p
+    } else {
+      val nextBest = best(n).map(a => (a._1, p.map(b => max(b._1 - a._2, 0) + b._2).min))
+      solve(n-1, nextBest, best)
+    }
+  }
+
+  def sortByPower(a: Array[(Int,Int)]) = a.sortWith( (x,y) => x._1 < y._1  || x._1 == y._1 && x._2 > y._2)
+
+  def findBest(a: Array[(Int,Int)]) = {
+    var max = 0
+    a.filter { e =>
+      if (e._2 <= max) false
+      else {
+        max = e._2
+        true
       }
-
-      for (l <-1 to levels) {
-        val b = readLine().split(" ")
-        var count = 0
-        b.foreach{
-          v => lookup.get(l).get(count).bullets=v.toInt
-            count +=1
-        }
-      }
-
-      lookup.foreach {
-        case (k,v) =>
-          val sortedV = v.sortBy(a=> (a.power, -a.bullets))
-          lookup.put(k, sortedV)
-      }
-
-      val pick = lookup.get(levels).get(0).power
-      // set initial path
-      lookup.get(levels).get.foreach{
-        en => en.path = pick
-      }
-
-      for (k <- levels-1 to 1 by -1) {
-        val c = lookup.get(k).get
-        for (t <-0 until c.size) {
-          val enemy = c(t)
-
-        }
-
-      }
-
-
     }
   }
 }
